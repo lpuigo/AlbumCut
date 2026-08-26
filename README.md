@@ -22,15 +22,21 @@ go build -o albumcut.exe .
 ## Usage
 
 ```
-albumcut <album.mp3> <tracks.txt>
+albumcut [-end-padding=N] <album.mp3> <tracks.txt>
 ```
 
 - `album.mp3` : le fichier MP3 de l'album complet.
 - `tracks.txt` : le fichier texte listant les pistes (voir format
   ci-dessous).
+- `-end-padding=N` (optionnel, défaut `0`) : nombre de secondes ajoutées à
+  la fin de chaque piste, sauf la dernière, pour éviter une coupe trop
+  courte en fin de piste. Les pistes générées se chevauchent alors
+  légèrement avec le début de la piste suivante ; la fin ne dépasse
+  jamais la durée réelle du fichier source. Le flag doit être placé
+  avant les arguments positionnels.
 
 Les fichiers de sortie sont créés dans le même répertoire que
-`album.mp3`, nommés `NN_TitreAlbum_TitrePiste.mp3` (`NN` = numéro de
+`album.mp3`, nommés `NN. TitreAlbum_TitrePiste.mp3` (`NN` = numéro de
 piste sur 2 chiffres, `TitreAlbum` = nom du fichier MP3 source sans
 extension).
 
@@ -43,9 +49,9 @@ albumcut "D:\Musique\MonAlbum.mp3" "D:\Musique\tracks.txt"
 produira par exemple :
 
 ```
-D:\Musique\01_MonAlbum_My Pulse Got Lost in the Air Vents.mp3
-D:\Musique\02_MonAlbum_Thunder in the Marrow.mp3
-D:\Musique\03_MonAlbum_Exit Wound Waltz.mp3
+D:\Musique\01. MonAlbum_My Pulse Got Lost in the Air Vents.mp3
+D:\Musique\02. MonAlbum_Thunder in the Marrow.mp3
+D:\Musique\03. MonAlbum_Exit Wound Waltz.mp3
 ```
 
 ## Format du fichier de timestamps

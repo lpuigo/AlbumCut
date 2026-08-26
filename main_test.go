@@ -15,6 +15,9 @@ func TestParseArgs(t *testing.T) {
 	if cfg.mp3Path != "album.mp3" || cfg.timestampsPath != "tracks.txt" {
 		t.Fatalf("unexpected config: %+v", cfg)
 	}
+	if cfg.endPadding != 0 {
+		t.Fatalf("expected default endPadding 0, got %v", cfg.endPadding)
+	}
 }
 
 func TestParseArgsWrongCount(t *testing.T) {
@@ -22,6 +25,33 @@ func TestParseArgsWrongCount(t *testing.T) {
 		if _, err := parseArgs(args); err == nil {
 			t.Fatalf("expected error for args %v", args)
 		}
+	}
+}
+
+func TestParseArgsEndPadding(t *testing.T) {
+	cfg, err := parseArgs([]string{"-end-padding=3.5", "album.mp3", "tracks.txt"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.endPadding != 3.5 {
+		t.Fatalf("expected endPadding 3.5, got %v", cfg.endPadding)
+	}
+	if cfg.mp3Path != "album.mp3" || cfg.timestampsPath != "tracks.txt" {
+		t.Fatalf("unexpected config: %+v", cfg)
+	}
+}
+
+func TestParseArgsEndPaddingAfterPositional(t *testing.T) {
+	// flag.FlagSet only recognizes flags before positional args; this
+	// documents that -end-padding must come first.
+	if _, err := parseArgs([]string{"album.mp3", "-end-padding=3.5", "tracks.txt"}); err == nil {
+		t.Fatal("expected error when flag follows positional arguments")
+	}
+}
+
+func TestParseArgsEndPaddingNegative(t *testing.T) {
+	if _, err := parseArgs([]string{"-end-padding=-1", "album.mp3", "tracks.txt"}); err == nil {
+		t.Fatal("expected error for negative -end-padding")
 	}
 }
 

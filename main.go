@@ -2,14 +2,19 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
 
+const usage = "usage: albumcut [-end-padding=N] <album.mp3> <tracks.txt>"
+
 type config struct {
 	mp3Path        string
 	timestampsPath string
+	endPadding     float64
 }
 
 func main() {
@@ -44,7 +49,7 @@ func run(args []string) error {
 		return err
 	}
 
-	segments, err := BuildSegments(tracks, totalDuration)
+	segments, err := BuildSegments(tracks, totalDuration, cfg.endPadding)
 	if err != nil {
 		return err
 	}
@@ -95,10 +100,24 @@ func printReport(results []trackResult) {
 }
 
 func parseArgs(args []string) (config, error) {
-	if len(args) != 2 {
-		return config{}, fmt.Errorf("usage: albumcut <album.mp3> <tracks.txt>")
+	fs := flag.NewFlagSet("albumcut", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	endPadding := fs.Float64("end-padding", 0,
+		"secondes ajoutees a la fin de chaque piste (sauf la derniere) pour eviter une coupe trop courte")
+
+	if err := fs.Parse(args); err != nil {
+		return config{}, fmt.Errorf("%s (%w)", usage, err)
 	}
-	return config{mp3Path: args[0], timestampsPath: args[1]}, nil
+
+	rest := fs.Args()
+	if len(rest) != 2 {
+		return config{}, fmt.Errorf(usage)
+	}
+	if *endPadding < 0 {
+		return config{}, fmt.Errorf("-end-padding doit etre positif ou nul (recu %v)", *endPadding)
+	}
+
+	return config{mp3Path: rest[0], timestampsPath: rest[1], endPadding: *endPadding}, nil
 }
 
 func checkFileExists(path string) error {

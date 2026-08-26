@@ -57,7 +57,7 @@ fichier texte annexe.
 - Fichiers nommés selon le format :
 
   ```
-  NN_TitreAlbum_TitrePiste.mp3
+  NN. TitreAlbum_TitrePiste.mp3
   ```
 
   - `NN` : numéro de piste, toujours sur 2 chiffres (`01`, `02`, ... `10`, `11`...)
@@ -65,7 +65,7 @@ fichier texte annexe.
   - `TitrePiste` : titre de la piste tel qu'il apparaît dans le fichier
     texte, **espaces conservés tels quels**
 
-  Exemple : `01_MonAlbum_My Pulse Got Lost in the Air Vents.mp3`
+  Exemple : `01. MonAlbum_My Pulse Got Lost in the Air Vents.mp3`
 
 - Les fichiers sont créés **dans le même répertoire** que le fichier MP3
   source.
@@ -134,7 +134,7 @@ Cas à couvrir :
   timestamp situé après la fin réelle du fichier → erreur claire)
 
 ### Étape 4 — Génération des noms de fichiers de sortie
-- Construction du nom : `NN_TitreAlbum_TitrePiste.mp3`, `NN` sur 2
+- Construction du nom : `NN. TitreAlbum_TitrePiste.mp3`, `NN` sur 2
   chiffres, `TitreAlbum` = nom du fichier MP3 sans extension
 - Sanitization minimale du titre pour rester un nom de fichier valide
   sur le système (échapper `/`, `\`, `:`, etc.), sans toucher aux

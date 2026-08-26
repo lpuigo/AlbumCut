@@ -131,9 +131,9 @@ func TestRunEndToEnd(t *testing.T) {
 	}
 
 	wantFiles := []string{
-		"01_MonAlbum_Track One.mp3",
-		"02_MonAlbum_Track Two.mp3",
-		"03_MonAlbum_Untitled.mp3",
+		"01. MonAlbum_Track One.mp3",
+		"02. MonAlbum_Track Two.mp3",
+		"03. MonAlbum_Untitled.mp3",
 	}
 	for _, name := range wantFiles {
 		info, err := os.Stat(filepath.Join(dir, name))

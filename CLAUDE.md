@@ -37,11 +37,14 @@ exit code — `run` returns a plain `error` and is what tests call directly):
    a `*ParseError` carrying line number + line content + reason.
 3. `ffprobe.go` — `ProbeDuration` shells out to `ffprobe` to get the real
    total duration of the source MP3.
-4. `segments.go` — `BuildSegments` turns `[]Track` + total duration into
-   `[]Segment` (start/end per track). Rejects a last track whose timestamp
-   is at or past the real file duration (would produce an empty/zero-length
-   file — this is a hard error, not a warning).
-5. `naming.go` — `OutputPath` builds `NN_AlbumTitle_TrackTitle.mp3` in the
+4. `segments.go` — `BuildSegments` turns `[]Track` + total duration + an
+   `endPadding` (seconds, from `-end-padding`) into `[]Segment` (start/end
+   per track). Every non-last track's end is pushed forward by `endPadding`
+   (capped at total duration) to avoid cutting its tail too short; the last
+   track is never padded. Rejects a last track whose timestamp is at or
+   past the real file duration (would produce an empty/zero-length file —
+   this is a hard error, not a warning).
+5. `naming.go` — `OutputPath` builds `NN. AlbumTitle_TrackTitle.mp3` in the
    source file's directory; sanitizes filesystem-forbidden characters
    (`/ \ : * ? " < > |`) but deliberately preserves spaces in track titles.
 6. `split.go` — `SplitSegment` invokes `ffmpeg -ss -to -c copy` per track
@@ -59,7 +62,8 @@ don't reintroduce without checking with the user first:
   stream-copy splitting is implemented. May be revisited later if it proves
   necessary in practice.
 - **No ID3 tag handling** on output files (out of scope per spec).
-- **No CLI flags** — arguments are strictly positional:
-  `albumcut <album.mp3> <tracks.txt>`.
+- **Arguments are positional**, with one optional flag: `albumcut
+  [-end-padding=N] <album.mp3> <tracks.txt>`. Standard `flag` package
+  semantics apply — flags must precede positional args.
 - **ffmpeg is a required, unmocked dependency** — tests shell out to a real
   `ffmpeg`/`ffprobe` rather than mocking `exec.Command`.

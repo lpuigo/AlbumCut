@@ -28,9 +28,9 @@ func SanitizeFilenamePart(s string) string {
 
 // OutputPath construit le chemin complet du fichier de sortie pour une
 // piste donnee, dans le meme repertoire que le fichier MP3 source :
-// NN_TitreAlbum_TitrePiste.mp3
+// NN. TitreAlbum_TitrePiste.mp3
 func OutputPath(mp3Path string, trackNumber int, trackTitle string) string {
-	filename := fmt.Sprintf("%02d_%s_%s.mp3",
+	filename := fmt.Sprintf("%02d. %s_%s.mp3",
 		trackNumber,
 		SanitizeFilenamePart(AlbumTitle(mp3Path)),
 		SanitizeFilenamePart(trackTitle),
