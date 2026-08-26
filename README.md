@@ -34,6 +34,7 @@ albumcut [-end-padding=N] <album.mp3> <tracks.txt>
   légèrement avec le début de la piste suivante ; la fin ne dépasse
   jamais la durée réelle du fichier source. Le flag doit être placé
   avant les arguments positionnels.
+- `-h`, `--help` : affiche l'aide et quitte (code de sortie `0`).
 
 Les fichiers de sortie sont créés dans le même répertoire que
 `album.mp3`, nommés `NN. TitreAlbum_TitrePiste.mp3` (`NN` = numéro de

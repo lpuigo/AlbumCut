@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"flag"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,6 +56,40 @@ func TestParseArgsEndPaddingNegative(t *testing.T) {
 	if _, err := parseArgs([]string{"-end-padding=-1", "album.mp3", "tracks.txt"}); err == nil {
 		t.Fatal("expected error for negative -end-padding")
 	}
+}
+
+func TestParseArgsHelp(t *testing.T) {
+	for _, args := range [][]string{{"-h"}, {"--help"}, {"-help"}} {
+		stdout := captureStdout(t, func() {
+			if _, err := parseArgs(args); !errors.Is(err, flag.ErrHelp) {
+				t.Fatalf("expected flag.ErrHelp for args %v, got %v", args, err)
+			}
+		})
+		if !strings.Contains(stdout, usage) {
+			t.Fatalf("expected help output to contain usage, got: %q", stdout)
+		}
+	}
+}
+
+// captureStdout redirects os.Stdout during fn and returns everything written to it.
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("failed to create pipe: %v", err)
+	}
+	orig := os.Stdout
+	os.Stdout = w
+	defer func() { os.Stdout = orig }()
+
+	fn()
+
+	w.Close()
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("failed to read captured stdout: %v", err)
+	}
+	return string(out)
 }
 
 func TestCheckFileExists(t *testing.T) {

@@ -11,6 +11,13 @@ import (
 
 const usage = "usage: albumcut [-end-padding=N] <album.mp3> <tracks.txt>"
 
+const helpText = usage + `
+
+Options:
+  -end-padding=N   secondes ajoutees a la fin de chaque piste (sauf la
+                   derniere) pour eviter une coupe trop courte (defaut 0)
+  -h, --help       affiche cette aide et quitte`
+
 type config struct {
 	mp3Path        string
 	timestampsPath string
@@ -18,7 +25,11 @@ type config struct {
 }
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
+	err := run(os.Args[1:])
+	if errors.Is(err, flag.ErrHelp) {
+		return
+	}
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "erreur:", err)
 		os.Exit(1)
 	}
@@ -106,6 +117,10 @@ func parseArgs(args []string) (config, error) {
 		"secondes ajoutees a la fin de chaque piste (sauf la derniere) pour eviter une coupe trop courte")
 
 	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			fmt.Println(helpText)
+			return config{}, flag.ErrHelp
+		}
 		return config{}, fmt.Errorf("%s (%w)", usage, err)
 	}
 

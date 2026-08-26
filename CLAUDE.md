@@ -65,5 +65,9 @@ don't reintroduce without checking with the user first:
 - **Arguments are positional**, with one optional flag: `albumcut
   [-end-padding=N] <album.mp3> <tracks.txt>`. Standard `flag` package
   semantics apply — flags must precede positional args.
+- **`-h`/`--help`** prints `helpText` (in `main.go`) and exits 0. Detected
+  via `errors.Is(err, flag.ErrHelp)`, which `parseArgs` returns unwrapped
+  (unlike other parse errors) so `main()` can special-case it and skip the
+  `erreur:` prefix/exit-1 path.
 - **ffmpeg is a required, unmocked dependency** — tests shell out to a real
   `ffmpeg`/`ffprobe` rather than mocking `exec.Command`.
