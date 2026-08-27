@@ -1,12 +1,15 @@
-package main
+// Package track contient les regles metier de parsing et de validation du
+// fichier de timestamps : une seule piste par ligne, timestamps strictement
+// croissants.
+package track
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"AlbumCut/internal/duration"
 )
 
 type Track struct {
@@ -27,22 +30,17 @@ func (e *ParseError) Error() string {
 
 var timestampLineRe = regexp.MustCompile(`^\s*(\d{1,2}(?::\d{2}){1,2})\s*-\s*(.*)$`)
 
-// ParseTimestamps lit un fichier de timestamps et retourne la liste des
-// pistes qu'il decrit, dans l'ordre. Le fichier doit contenir au moins une
-// ligne valide, et les timestamps doivent etre strictement croissants.
-func ParseTimestamps(path string) ([]Track, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("impossible d'ouvrir le fichier de timestamps %s : %w", path, err)
-	}
-	defer f.Close()
-
+// ParseTracks parse les lignes d'un fichier de timestamps (dans l'ordre du
+// fichier, y compris les lignes vides, pour que les numeros de ligne restent
+// corrects) et retourne la liste des pistes qu'elles decrivent. Il doit y
+// avoir au moins une ligne valide, et les timestamps doivent etre
+// strictement croissants.
+func ParseTracks(lines []string) ([]Track, error) {
 	var tracks []Track
-	lineNumber := 0
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		lineNumber++
-		rawLine := strings.TrimRight(scanner.Text(), "\r")
+
+	for i, rawLine := range lines {
+		lineNumber := i + 1
+		rawLine = strings.TrimRight(rawLine, "\r")
 		if strings.TrimSpace(rawLine) == "" {
 			continue
 		}
@@ -57,7 +55,7 @@ func ParseTimestamps(path string) ([]Track, error) {
 			if track.Start <= prev.Start {
 				reason := fmt.Sprintf(
 					"timestamp non strictement croissant (%s), doit etre superieur au precedent (%s, ligne %d)",
-					formatSeconds(track.Start), formatSeconds(prev.Start), prev.LineNumber,
+					duration.Format(track.Start), duration.Format(prev.Start), prev.LineNumber,
 				)
 				return nil, &ParseError{Line: lineNumber, Content: rawLine, Reason: reason}
 			}
@@ -65,12 +63,9 @@ func ParseTimestamps(path string) ([]Track, error) {
 
 		tracks = append(tracks, track)
 	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("erreur de lecture du fichier de timestamps %s : %w", path, err)
-	}
 
 	if len(tracks) == 0 {
-		return nil, fmt.Errorf("fichier de timestamps %s vide ou sans ligne valide", path)
+		return nil, fmt.Errorf("fichier de timestamps vide ou sans ligne valide")
 	}
 
 	return tracks, nil
@@ -133,11 +128,4 @@ func parseTimecode(timecode string) (int, error) {
 	}
 
 	return h*3600 + min*60 + sec, nil
-}
-
-func formatSeconds(total int) string {
-	h := total / 3600
-	m := (total % 3600) / 60
-	s := total % 60
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }

@@ -1,6 +1,7 @@
-package main
+package cli
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"io"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestParseArgs(t *testing.T) {
-	cfg, err := parseArgs([]string{"album.mp3", "tracks.txt"})
+	cfg, err := parseArgs([]string{"album.mp3", "tracks.txt"}, io.Discard)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -25,14 +26,14 @@ func TestParseArgs(t *testing.T) {
 
 func TestParseArgsWrongCount(t *testing.T) {
 	for _, args := range [][]string{{}, {"only-one"}, {"a", "b", "c"}} {
-		if _, err := parseArgs(args); err == nil {
+		if _, err := parseArgs(args, io.Discard); err == nil {
 			t.Fatalf("expected error for args %v", args)
 		}
 	}
 }
 
 func TestParseArgsEndPadding(t *testing.T) {
-	cfg, err := parseArgs([]string{"-end-padding=3.5", "album.mp3", "tracks.txt"})
+	cfg, err := parseArgs([]string{"-end-padding=3.5", "album.mp3", "tracks.txt"}, io.Discard)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -47,49 +48,27 @@ func TestParseArgsEndPadding(t *testing.T) {
 func TestParseArgsEndPaddingAfterPositional(t *testing.T) {
 	// flag.FlagSet only recognizes flags before positional args; this
 	// documents that -end-padding must come first.
-	if _, err := parseArgs([]string{"album.mp3", "-end-padding=3.5", "tracks.txt"}); err == nil {
+	if _, err := parseArgs([]string{"album.mp3", "-end-padding=3.5", "tracks.txt"}, io.Discard); err == nil {
 		t.Fatal("expected error when flag follows positional arguments")
 	}
 }
 
 func TestParseArgsEndPaddingNegative(t *testing.T) {
-	if _, err := parseArgs([]string{"-end-padding=-1", "album.mp3", "tracks.txt"}); err == nil {
+	if _, err := parseArgs([]string{"-end-padding=-1", "album.mp3", "tracks.txt"}, io.Discard); err == nil {
 		t.Fatal("expected error for negative -end-padding")
 	}
 }
 
 func TestParseArgsHelp(t *testing.T) {
 	for _, args := range [][]string{{"-h"}, {"--help"}, {"-help"}} {
-		stdout := captureStdout(t, func() {
-			if _, err := parseArgs(args); !errors.Is(err, flag.ErrHelp) {
-				t.Fatalf("expected flag.ErrHelp for args %v, got %v", args, err)
-			}
-		})
-		if !strings.Contains(stdout, usage) {
-			t.Fatalf("expected help output to contain usage, got: %q", stdout)
+		var buf bytes.Buffer
+		if _, err := parseArgs(args, &buf); !errors.Is(err, flag.ErrHelp) {
+			t.Fatalf("expected flag.ErrHelp for args %v, got %v", args, err)
+		}
+		if !strings.Contains(buf.String(), usage) {
+			t.Fatalf("expected help output to contain usage, got: %q", buf.String())
 		}
 	}
-}
-
-// captureStdout redirects os.Stdout during fn and returns everything written to it.
-func captureStdout(t *testing.T, fn func()) string {
-	t.Helper()
-	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("failed to create pipe: %v", err)
-	}
-	orig := os.Stdout
-	os.Stdout = w
-	defer func() { os.Stdout = orig }()
-
-	fn()
-
-	w.Close()
-	out, err := io.ReadAll(r)
-	if err != nil {
-		t.Fatalf("failed to read captured stdout: %v", err)
-	}
-	return string(out)
 }
 
 func TestCheckFileExists(t *testing.T) {

@@ -1,9 +1,13 @@
-package main
+package segment
 
-import "testing"
+import (
+	"testing"
+
+	"AlbumCut/internal/track"
+)
 
 func TestBuildSegments(t *testing.T) {
-	tracks := []Track{
+	tracks := []track.Track{
 		{Title: "A", Start: 0, LineNumber: 1},
 		{Title: "B", Start: 60, LineNumber: 2},
 		{Title: "C", Start: 150, LineNumber: 3},
@@ -30,7 +34,7 @@ func TestBuildSegments(t *testing.T) {
 }
 
 func TestBuildSegmentsLastTrackAfterEnd(t *testing.T) {
-	tracks := []Track{
+	tracks := []track.Track{
 		{Title: "A", Start: 0, LineNumber: 1},
 		{Title: "B", Start: 250, LineNumber: 2},
 	}
@@ -41,7 +45,7 @@ func TestBuildSegmentsLastTrackAfterEnd(t *testing.T) {
 }
 
 func TestBuildSegmentsLastTrackZeroDuration(t *testing.T) {
-	tracks := []Track{
+	tracks := []track.Track{
 		{Title: "A", Start: 0, LineNumber: 1},
 		{Title: "B", Start: 200, LineNumber: 2},
 	}
@@ -52,7 +56,7 @@ func TestBuildSegmentsLastTrackZeroDuration(t *testing.T) {
 }
 
 func TestBuildSegmentsSingleTrack(t *testing.T) {
-	tracks := []Track{{Title: "Only", Start: 0, LineNumber: 1}}
+	tracks := []track.Track{{Title: "Only", Start: 0, LineNumber: 1}}
 
 	segments, err := BuildSegments(tracks, 120, 0)
 	if err != nil {
@@ -64,7 +68,7 @@ func TestBuildSegmentsSingleTrack(t *testing.T) {
 }
 
 func TestBuildSegmentsEndPadding(t *testing.T) {
-	tracks := []Track{
+	tracks := []track.Track{
 		{Title: "A", Start: 0, LineNumber: 1},
 		{Title: "B", Start: 60, LineNumber: 2},
 		{Title: "C", Start: 150, LineNumber: 3},
@@ -88,7 +92,7 @@ func TestBuildSegmentsEndPadding(t *testing.T) {
 }
 
 func TestBuildSegmentsEndPaddingCappedAtTotalDuration(t *testing.T) {
-	tracks := []Track{
+	tracks := []track.Track{
 		{Title: "A", Start: 0, LineNumber: 1},
 		{Title: "B", Start: 190, LineNumber: 2},
 	}

@@ -1,4 +1,6 @@
-package main
+// Package naming construit le chemin des fichiers de sortie a partir du
+// fichier MP3 source et du titre de piste.
+package naming
 
 import (
 	"fmt"
@@ -28,7 +30,7 @@ func SanitizeFilenamePart(s string) string {
 
 // OutputPath construit le chemin complet du fichier de sortie pour une
 // piste donnee, dans le meme repertoire que le fichier MP3 source :
-// NN. TitreAlbum_TitrePiste.mp3
+// NN. AlbumTitle_TrackTitle.mp3
 func OutputPath(mp3Path string, trackNumber int, trackTitle string) string {
 	filename := fmt.Sprintf("%02d. %s_%s.mp3",
 		trackNumber,

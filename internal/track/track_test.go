@@ -1,28 +1,24 @@
-package main
+package track
 
 import (
-	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 )
 
-func writeTempFile(t *testing.T, content string) string {
-	t.Helper()
-	dir := t.TempDir()
-	path := filepath.Join(dir, "tracks.txt")
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-		t.Fatalf("setup failed: %v", err)
+func linesOf(content string) []string {
+	if content == "" {
+		return nil
 	}
-	return path
+	return strings.Split(strings.TrimRight(content, "\n"), "\n")
 }
 
-func TestParseTimestampsValidMixedFormats(t *testing.T) {
+func TestParseTracksValidMixedFormats(t *testing.T) {
 	content := "00:00:00 - My Pulse Got Lost in the Air Vents\n" +
 		"00:05:07 - Thunder in the Marrow\n" +
 		"9:57 - Exit Wound Waltz\n" +
 		"00:14:26 -\n"
 
-	tracks, err := ParseTimestamps(writeTempFile(t, content))
+	tracks, err := ParseTracks(linesOf(content))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -49,8 +45,8 @@ func TestParseTimestampsValidMixedFormats(t *testing.T) {
 	}
 }
 
-func TestParseTimestampsPreservesInternalSpaces(t *testing.T) {
-	tracks, err := ParseTimestamps(writeTempFile(t, "00:00:00 - A   Title  With Spaces\n"))
+func TestParseTracksPreservesInternalSpaces(t *testing.T) {
+	tracks, err := ParseTracks(linesOf("00:00:00 - A   Title  With Spaces\n"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -59,8 +55,8 @@ func TestParseTimestampsPreservesInternalSpaces(t *testing.T) {
 	}
 }
 
-func TestParseTimestampsMalformedLine(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, "00:00:00 - Track One\nnot a timestamp\n"))
+func TestParseTracksMalformedLine(t *testing.T) {
+	_, err := ParseTracks(linesOf("00:00:00 - Track One\nnot a timestamp\n"))
 	if err == nil {
 		t.Fatal("expected error for malformed line")
 	}
@@ -73,8 +69,8 @@ func TestParseTimestampsMalformedLine(t *testing.T) {
 	}
 }
 
-func TestParseTimestampsOutOfOrder(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, "00:01:00 - Track One\n00:00:30 - Track Two\n"))
+func TestParseTracksOutOfOrder(t *testing.T) {
+	_, err := ParseTracks(linesOf("00:01:00 - Track One\n00:00:30 - Track Two\n"))
 	if err == nil {
 		t.Fatal("expected error for out-of-order timestamps")
 	}
@@ -87,37 +83,30 @@ func TestParseTimestampsOutOfOrder(t *testing.T) {
 	}
 }
 
-func TestParseTimestampsDuplicate(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, "00:01:00 - Track One\n00:01:00 - Track Two\n"))
+func TestParseTracksDuplicate(t *testing.T) {
+	_, err := ParseTracks(linesOf("00:01:00 - Track One\n00:01:00 - Track Two\n"))
 	if err == nil {
 		t.Fatal("expected error for duplicate timestamps")
 	}
 }
 
-func TestParseTimestampsEmptyFile(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, ""))
+func TestParseTracksEmptyFile(t *testing.T) {
+	_, err := ParseTracks(linesOf(""))
 	if err == nil {
 		t.Fatal("expected error for empty file")
 	}
 }
 
-func TestParseTimestampsOnlyBlankLines(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, "\n   \n\t\n"))
+func TestParseTracksOnlyBlankLines(t *testing.T) {
+	_, err := ParseTracks(linesOf("\n   \n\t\n"))
 	if err == nil {
 		t.Fatal("expected error for file without valid lines")
 	}
 }
 
-func TestParseTimestampsInvalidMinutesSeconds(t *testing.T) {
-	_, err := ParseTimestamps(writeTempFile(t, "00:99:00 - Track One\n"))
+func TestParseTracksInvalidMinutesSeconds(t *testing.T) {
+	_, err := ParseTracks(linesOf("00:99:00 - Track One\n"))
 	if err == nil {
 		t.Fatal("expected error for out-of-range minutes")
-	}
-}
-
-func TestParseTimestampsMissingFile(t *testing.T) {
-	_, err := ParseTimestamps(filepath.Join(t.TempDir(), "missing.txt"))
-	if err == nil {
-		t.Fatal("expected error for missing file")
 	}
 }

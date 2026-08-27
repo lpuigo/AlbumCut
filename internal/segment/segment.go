@@ -1,10 +1,17 @@
-package main
+// Package segment calcule, pour chaque piste, la portion du fichier MP3
+// source (bornes de depart et de fin) qui doit en etre extraite.
+package segment
 
-import "fmt"
+import (
+	"fmt"
+
+	"AlbumCut/internal/duration"
+	"AlbumCut/internal/track"
+)
 
 // Segment decrit la portion du fichier MP3 source correspondant a une piste.
 type Segment struct {
-	Track Track
+	Track track.Track
 	Start float64
 	End   float64
 }
@@ -16,7 +23,7 @@ type Segment struct {
 // la duree reelle du fichier. Une erreur est retournee si le timestamp de
 // la derniere piste est posterieur ou egal a la duree reelle du fichier
 // (ce qui produirait un fichier de sortie vide ou de duree nulle).
-func BuildSegments(tracks []Track, totalDuration float64, endPadding float64) ([]Segment, error) {
+func BuildSegments(tracks []track.Track, totalDuration float64, endPadding float64) ([]Segment, error) {
 	segments := make([]Segment, 0, len(tracks))
 
 	for i, t := range tracks {
@@ -35,7 +42,7 @@ func BuildSegments(tracks []Track, totalDuration float64, endPadding float64) ([
 					"timestamp de la derniere piste %q (ligne %d, %s) invalide : "+
 						"posterieur ou egal a la duree reelle du fichier MP3 (%s), "+
 						"aucun fichier de duree nulle ne sera cree",
-					t.Title, t.LineNumber, formatSeconds(t.Start), formatSeconds(int(totalDuration)),
+					t.Title, t.LineNumber, duration.Format(t.Start), duration.Format(int(totalDuration)),
 				)
 			}
 		}
